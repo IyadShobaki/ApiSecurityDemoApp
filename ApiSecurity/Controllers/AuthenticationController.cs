@@ -19,7 +19,7 @@ public class AuthenticationController : ControllerBase
    // A record is the equivelant of creating a class and have 2 properties (e.g. UserName and Password)
    // and set a constructor to get in these values. Its a read only object
    public record AuthenticationData(string? UserName, string? Password);
-   public record UserData(int UserId, string UserName);
+   public record UserData(int UserId, string UserName, string Title, string EmployeeId);
    // api/Authentication/token
    [HttpPost("token")]
    public ActionResult<string> Authenticate([FromBody] AuthenticationData data)
@@ -55,6 +55,11 @@ public class AuthenticationController : ControllerBase
       claims.Add(new(JwtRegisteredClaimNames.Sub, user.UserId.ToString())); // The subject what identify the user
       claims.Add(new(JwtRegisteredClaimNames.UniqueName, user.UserName));
 
+      // Adding custom claims to use it for authorization
+      claims.Add(new("title", user.Title));
+      claims.Add(new("employeeId", user.EmployeeId));
+
+
 
       // Build the token. In authentications system we may have a regular token and a refresh token
       var token = new JwtSecurityToken(
@@ -76,14 +81,14 @@ public class AuthenticationController : ControllerBase
       if (CompareValues(data.UserName, "ishobaki") &&
          CompareValues(data.Password, "Test123"))
       {
-         return new UserData(1, data.UserName!);  //! mark is t tell the compiler to ignore
-                                                  // it becuase we are sure that it will not null
+         return new UserData(1, data.UserName!, "Business Owner", "E001");  //! mark is t tell the compiler to ignore
+                                                                            // it becuase we are sure that it will not null
       }
 
       if (CompareValues(data.UserName, "sstorm") &&
         CompareValues(data.Password, "Test123"))
       {
-         return new UserData(2, data.UserName!);
+         return new UserData(2, data.UserName!, "Head of Security", "E005");
       }
 
       return null;
