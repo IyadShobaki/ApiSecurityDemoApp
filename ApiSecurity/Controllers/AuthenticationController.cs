@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 namespace ApiSecurity.Controllers;
@@ -25,10 +27,12 @@ public class AuthenticationController : ControllerBase
       var user = ValidateCredentials(data);
       if (user is null)
       {
-         return Unauthorized();
+         return Unauthorized();  // 401
       }
       // Generate a token in case of authorization success
+      var token = GenerateToken(user);
 
+      return Ok(token);
    }
    private string GenerateToken(UserData user)
    {
@@ -44,8 +48,24 @@ public class AuthenticationController : ControllerBase
       // Verifiaction step
       var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
+      // Add claims: Data points about the user that we are verifying
+      // In our token, we can have standard claims or custom claims
+      List<Claim> claims = new();
+      // Standar claims (industry standars)
+      claims.Add(new(JwtRegisteredClaimNames.Sub, user.UserId.ToString())); // The subject what identify the user
+      claims.Add(new(JwtRegisteredClaimNames.UniqueName, user.UserName));
 
 
+      // Build the token. In authentications system we may have a regular token and a refresh token
+      var token = new JwtSecurityToken(
+            _config.GetValue<string>("Authentication:Issuer"),
+            _config.GetValue<string>("Authentication:Audience"),
+            claims,
+            DateTime.UtcNow, // When this token beocmes valid (number od seconds since jan 1st, 1970)
+            DateTime.UtcNow.AddMinutes(1), //This when the token will expire
+            signingCredentials);
+
+      return new JwtSecurityTokenHandler().WriteToken(token);
    }
 
    private UserData? ValidateCredentials(AuthenticationData data)
