@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -22,6 +23,7 @@ public class AuthenticationController : ControllerBase
    public record UserData(int UserId, string UserName, string Title, string EmployeeId);
    // api/Authentication/token
    [HttpPost("token")]
+   [AllowAnonymous]
    public ActionResult<string> Authenticate([FromBody] AuthenticationData data)
    {  // Passing basic auth (user name and password in the body) verified it against the db or something else
       var user = ValidateCredentials(data);

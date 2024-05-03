@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using ApiSecurity.Constants;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -22,7 +23,8 @@ public class UsersController : ControllerBase
 
    // GET api/<UsersController>/5
    [HttpGet("{id}")]
-   [Authorize]
+   [Authorize(Policy = PolicyConstants.MustHaveEmployeeId)]
+   [Authorize(Policy = PolicyConstants.MustBeAVeteranEmployee)]
    public string Get(int id)
    {
       // stored in secrets.json for security and to not commited to source control by acciedent
